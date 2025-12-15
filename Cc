@@ -1,0 +1,182 @@
+import java.util.*;
+import java.text.DecimalFormat;
+
+public class WorldCurrencyConverter {
+
+    // Global Maps to store Rates and Names
+    // CO-6: Using Collections Framework (HashMap)
+    private static final Map<String, Double> ratesToUSD = new TreeMap<>(); // TreeMap keeps it sorted alphabetically
+    private static final Map<String, String> currencyNames = new HashMap<>();
+
+    // co-1: Initialize Data (The Database of Currencies)
+    // Rates are approximate (1 USD = X Units) as of Late 2024/2025 context
+    public static void initializeCurrencies() {
+        // North America
+        addCurrency("USD", 1.00, "United States Dollar");
+        addCurrency("CAD", 1.42, "Canadian Dollar");
+        addCurrency("MXN", 20.50, "Mexican Peso");
+
+        // Europe
+        addCurrency("EUR", 0.95, "Euro");
+        addCurrency("GBP", 0.79, "British Pound Sterling");
+        addCurrency("CHF", 0.89, "Swiss Franc");
+        addCurrency("SEK", 10.95, "Swedish Krona");
+        addCurrency("NOK", 11.20, "Norwegian Krone");
+        addCurrency("DKK", 7.10, "Danish Krone");
+        addCurrency("RUB", 100.50, "Russian Ruble");
+        addCurrency("PLN", 4.15, "Polish Zloty");
+        addCurrency("TRY", 36.50, "Turkish Lira");
+        addCurrency("HUF", 380.00, "Hungarian Forint");
+        addCurrency("CZK", 23.80, "Czech Koruna");
+
+        // Asia
+        addCurrency("INR", 84.65, "Indian Rupee");
+        addCurrency("JPY", 154.20, "Japanese Yen");
+        addCurrency("CNY", 7.28, "Chinese Yuan");
+        addCurrency("HKD", 7.78, "Hong Kong Dollar");
+        addCurrency("SGD", 1.34, "Singapore Dollar");
+        addCurrency("KRW", 1405.00, "South Korean Won");
+        addCurrency("IDR", 16250.00, "Indonesian Rupiah");
+        addCurrency("MYR", 4.45, "Malaysian Ringgit");
+        addCurrency("THB", 34.50, "Thai Baht");
+        addCurrency("VND", 25400.00, "Vietnamese Dong");
+        addCurrency("PHP", 58.80, "Philippine Peso");
+        addCurrency("PKR", 278.50, "Pakistani Rupee");
+        addCurrency("BDT", 120.00, "Bangladeshi Taka");
+        addCurrency("LKR", 300.00, "Sri Lankan Rupee");
+        addCurrency("NPR", 135.50, "Nepalese Rupee");
+        addCurrency("AED", 3.67, "UAE Dirham");
+        addCurrency("SAR", 3.75, "Saudi Riyal");
+        addCurrency("ILS", 3.70, "Israeli Shekel");
+        addCurrency("KWD", 0.31, "Kuwaiti Dinar"); // Strong currency
+
+        // Oceania
+        addCurrency("AUD", 1.56, "Australian Dollar");
+        addCurrency("NZD", 1.70, "New Zealand Dollar");
+
+        // South America
+        addCurrency("BRL", 5.85, "Brazilian Real");
+        addCurrency("ARS", 1050.00, "Argentine Peso");
+        addCurrency("CLP", 980.00, "Chilean Peso");
+        addCurrency("COP", 4100.00, "Colombian Peso");
+        addCurrency("PEN", 3.75, "Peruvian Sol");
+
+        // Africa
+        addCurrency("ZAR", 18.50, "South African Rand");
+        addCurrency("EGP", 49.50, "Egyptian Pound");
+        addCurrency("NGN", 1650.00, "Nigerian Naira");
+        addCurrency("KES", 129.00, "Kenyan Shilling");
+        addCurrency("GHS", 15.20, "Ghanaian Cedi");
+        addCurrency("MAD", 10.10, "Moroccan Dirham");
+    }
+
+    // Helper to add to maps
+    private static void addCurrency(String code, double rate, String name) {
+        ratesToUSD.put(code, rate);
+        currencyNames.put(code, name);
+    }
+
+    // co-2: Display all available codes
+    public static void displayAllCurrencies() {
+        System.out.println("\n===== AVAILABLE CURRENCIES (" + ratesToUSD.size() + " Total) =====");
+        int count = 0;
+        for (String code : ratesToUSD.keySet()) {
+            System.out.printf("%-4s : %-25s  ", code, currencyNames.get(code));
+            count++;
+            if (count % 2 == 0) System.out.println(); // New line every 2 items
+        }
+        System.out.println("\n=======================================================");
+    }
+
+    // co-3: Get Valid Currency Code from User
+    public static String getCurrencyCode(Scanner sc, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = sc.next().toUpperCase().trim();
+            
+            if (input.equals("LIST")) {
+                displayAllCurrencies();
+                continue;
+            }
+
+            if (ratesToUSD.containsKey(input)) {
+                return input;
+            } else {
+                System.out.println("Invalid Code. Type 'LIST' to see all options or try again.");
+            }
+        }
+    }
+
+    // co-4: Get Valid Amount
+    public static double getAmount(Scanner sc) {
+        while (true) {
+            System.out.print("Enter Amount: ");
+            if (sc.hasNextDouble()) {
+                double amount = sc.nextDouble();
+                if (amount >= 0) return amount;
+            } else {
+                sc.next(); // clear error
+            }
+            System.out.println("Error: Please enter a valid positive number.");
+        }
+    }
+
+    // co-5: Core Calculation Logic
+    // Logic: Convert FROM -> USD, then USD -> TO
+    public static double convert(double amount, String fromCode, String toCode) {
+        double fromRate = ratesToUSD.get(fromCode); // e.g., 84.65 (INR)
+        double toRate = ratesToUSD.get(toCode);     // e.g., 0.95 (EUR)
+
+        // Step 1: Convert 'From' currency to USD
+        // If 1 USD = 84.65 INR, then 1 INR = 1/84.65 USD
+        double amountInUSD = amount / fromRate;
+
+        // Step 2: Convert USD to 'To' currency
+        // If 1 USD = 0.95 EUR, then AmountUSD * 0.95 = EUR
+        double convertedAmount = amountInUSD * toRate;
+
+        return convertedAmount;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        DecimalFormat df = new DecimalFormat("#,##0.00");
+
+        // Load all data
+        initializeCurrencies();
+
+        System.out.println("=================================================");
+        System.out.println("      WORLD CURRENCY CONVERTER (GLOBAL)          ");
+        System.out.println("=================================================");
+        System.out.println("Instructions: Enter the 3-letter code (e.g., USD, INR).");
+        System.out.println("Type 'LIST' at any code prompt to see all " + ratesToUSD.size() + " currencies.");
+
+        while (true) {
+            System.out.println("\n-------------------------------------------------");
+            
+            // Get Inputs
+            String fromCode = getCurrencyCode(sc, "Convert FROM (Code): ");
+            String toCode = getCurrencyCode(sc, "Convert TO   (Code): ");
+            double amount = getAmount(sc);
+
+            // Perform Conversion
+            double result = convert(amount, fromCode, toCode);
+
+            // Display Result
+            System.out.println("\n>>> RESULT:");
+            System.out.printf("%s %s (%s) \n    = %s %s (%s)%n", 
+                df.format(amount), fromCode, currencyNames.get(fromCode),
+                df.format(result), toCode, currencyNames.get(toCode)
+            );
+
+            // Check loop
+            System.out.print("\nConvert another? (y/n): ");
+            String choice = sc.next();
+            if (!choice.equalsIgnoreCase("y")) {
+                System.out.println("Thank you for using Currency Converter");
+                break;
+            }
+        }
+        sc.close();
+    }
+}
